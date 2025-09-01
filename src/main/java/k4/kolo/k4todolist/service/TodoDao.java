@@ -38,27 +38,29 @@ public class TodoDao {
 
     public Optional<Todo> getById(int id) {
         String sql = "SELECT id, title, description, created_at, deadline FROM todos WHERE id = ?";
-        
+    
         try (Connection connection = Database.getConnection();
              PreparedStatement statement = connection.prepareStatement(sql)) {
-            
+    
             statement.setInt(1, id);
             ResultSet rs = statement.executeQuery();
-            
+    
             if (rs.next()) {
-                String title = rs.getString("title");
-                String description = rs.getString("description");
-                Instant createdAt = rs.getTimestamp("created_at").toInstant();
-                Instant deadline = rs.getTimestamp("deadline").toInstant();
-                
-                return Optional.of(new Todo(id, title, description, createdAt, deadline));
+                return Optional.of(new Todo(
+                    id,
+                    rs.getString("title"),
+                    rs.getString("description"),
+                    rs.getTimestamp("created_at").toInstant(),
+                    rs.getTimestamp("deadline").toInstant()
+                ));
             }
-            
-        } catch (SQLException error) {
-            error.printStackTrace();
+    
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
         return Optional.empty();
     }
+    
 
     public Todo create(Todo todo) {
         String sql = "INSERT INTO todos (title, description, created_at, deadline) VALUES (?, ?, ?, ?)";
