@@ -64,31 +64,34 @@ public class TodoDao {
 
     public Todo create(Todo todo) {
         String sql = "INSERT INTO todos (title, description, created_at, deadline) VALUES (?, ?, ?, ?)";
-        
+    
         try (Connection connection = Database.getConnection();
              PreparedStatement statement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-            
+    
             statement.setString(1, todo.getTitle());
             statement.setString(2, todo.getDescription());
             statement.setTimestamp(3, Timestamp.from(todo.getCreatedAt()));
             statement.setTimestamp(4, Timestamp.from(todo.getDue_date()));
-            
-            int affectedRows = statement.executeUpdate();
-            
-            if (affectedRows > 0) {
-                try (ResultSet generatedKeys = statement.getGeneratedKeys()) {
-                    if (generatedKeys.next()) {
-                        int newId = generatedKeys.getInt(1);
-                        return new Todo(newId, todo.getTitle(), todo.getDescription(), 
-                                      todo.getCreatedAt(), todo.getDue_date());
+    
+            if (statement.executeUpdate() > 0) {
+                try (ResultSet keys = statement.getGeneratedKeys()) {
+                    if (keys.next()) {
+                        return new Todo(
+                            keys.getInt(1),
+                            todo.getTitle(),
+                            todo.getDescription(),
+                            todo.getCreatedAt(),
+                            todo.getDue_date()
+                        );
                     }
                 }
             }
-            
-        } catch (SQLException error) {
-            error.printStackTrace();
+    
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
         return null;
     }
+    
 }
 
